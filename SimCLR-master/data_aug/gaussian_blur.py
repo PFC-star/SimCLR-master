@@ -11,10 +11,11 @@ class GaussianBlur(object):
     def __init__(self, kernel_size):
         radias = kernel_size // 2
         kernel_size = radias * 2 + 1
-        self.blur_h = nn.Conv2d(3, 3, kernel_size=(kernel_size, 1),
-                                stride=1, padding=0, bias=False, groups=3)
+        # 为适应 mnist已经修改
+        self.blur_h = nn.Conv2d(1, 3, kernel_size=(kernel_size, 1),
+                                stride=1, padding=0, bias=False, groups=1)
         self.blur_v = nn.Conv2d(3, 3, kernel_size=(1, kernel_size),
-                                stride=1, padding=0, bias=False, groups=3)
+                                stride=1, padding=0, bias=False, groups=1)
         self.k = kernel_size
         self.r = radias
 
