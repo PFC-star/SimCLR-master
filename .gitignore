@@ -140,3 +140,22 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+.idea/.gitignore
+.idea/SimCLR-master.iml
+.idea/aws.xml
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+SimCLR-master/LICENSE.txt
+
+SimCLR-master/datasets/
+
+
+
+
+SimCLR-master/runs/Apr30_18-27-38_PFCPC/checkpoint_0005.pth.tar
+SimCLR-master/runs/Apr30_18-27-38_PFCPC/events.out.tfevents.1682850145.autodl-container-c1bc119952-35466a72.5346.0
+SimCLR-master/runs/Apr30_21-33-26_PFCPC/events.out.tfevents.1682861612.PFCPC.24164.0
+SimCLR-master/runs/Apr30_21-35-16_PFCPC/events.out.tfevents.1682861720.PFCPC.7336.0
+
