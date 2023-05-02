@@ -13,11 +13,18 @@ class ResNetSimCLR(nn.Module):
 
         self.backbone = self._get_basemodel(base_model)
         dim_mlp = self.backbone.fc.in_features
-
+        self.backbone1c = self.backbone
+        self.backbone3c = self.backbone
         # add mlp projection head
-        self.backbone.fc = nn.Sequential(
+        self.backbone1c.conv1=nn.Sequential(
+                                        nn.Conv2d(1,3,kernel_size=(1,1),stride=1),
+                                        nn.BatchNorm2d(3,eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
+                                        nn.ReLU(inplace=True),
+                                        nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+)
+        self.backbone3c.fc = nn.Sequential(
                                          nn.Linear(dim_mlp, dim_mlp),
-                                         nn.ReLU(),
+                                         nn.ReLU(inplace=True),
                                          self.backbone.fc)
 
     def _get_basemodel(self, model_name):
@@ -30,4 +37,9 @@ class ResNetSimCLR(nn.Module):
             return model
 
     def forward(self, x):
-        return self.backbone(x)
+        b,c,h,w = x.size()
+        if(c==1):
+            return self.backbone1c(x)
+        elif(c==3):
+            return self.backbone3c(x)
+
