@@ -61,14 +61,14 @@ class GaussianBlur(object):
             device = 'cpu'
 
         self.blur_h = nn.Conv2d(1, 1, kernel_size=(kernel_size, 1),
-                                stride=1, padding=0, bias=False, groups=1).to(device)
+                                stride=1, padding=0, bias=False, groups=1)
         self.blur_v = nn.Conv2d(1, 1, kernel_size=(1, kernel_size),
-                                stride=1, padding=0, bias=False, groups=1).to(device)
+                                stride=1, padding=0, bias=False, groups=1)
 
         self.blur_h_3 = nn.Conv2d(3, 3, kernel_size=(kernel_size, 1),
-                                  stride=1, padding=0, bias=False, groups=3).to(device)
+                                  stride=1, padding=0, bias=False, groups=3)
         self.blur_v_3 = nn.Conv2d(3, 3, kernel_size=(1, kernel_size),
-                                  stride=1, padding=0, bias=False, groups=3).to(device)
+                                  stride=1, padding=0, bias=False, groups=3)
 
         self.blur = nn.Sequential(
             nn.ReflectionPad2d(radias),
