@@ -79,11 +79,11 @@ if config.arch == 'resnet18':
 elif config.arch == 'resnet50':
   model = torchvision.models.resnet50(pretrained=False, num_classes=10).to(device)
 conv0 = torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1)
-
-model.conv1 = torch.nn.Sequential(
-torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1),
-torch.nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-)
+#
+# model.conv1 = torch.nn.Sequential(
+# torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1),
+# torch.nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+# )
 model.to(device)
 checkpoint = torch.load('../runs/Apr30_22-03-47_PFCPC/checkpoint_0200.pth.tar', map_location=device)
 state_dict = checkpoint['state_dict']
@@ -98,7 +98,7 @@ for k in list(state_dict.keys()):
 
 
 log = model.load_state_dict(state_dict, strict=False)
-assert log.missing_keys == ['conv1.0.weight', 'conv1.0.bias', 'conv1.1.weight','fc.weight', 'fc.bias']
+assert log.missing_keys == ['fc.weight', 'fc.bias']
 
 
 if config.dataset_name == 'cifar10':
@@ -113,11 +113,11 @@ print("Dataset:", config.dataset_name)
 
 # freeze all layers but the last fc
 for name, param in model.named_parameters():
-    if name not in ['conv1.0.weight', 'conv1.0.bias', 'conv1.1.weight','fc.weight', 'fc.bias']:
+    if name not in ['fc.weight', 'fc.bias']:
         param.requires_grad = False
 
 parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
-assert len(parameters) == 5 # fc.weight, fc.bias
+assert len(parameters) == 2 # fc.weight, fc.bias
 
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.0003, weight_decay=0.0008)

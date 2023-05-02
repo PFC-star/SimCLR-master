@@ -41,7 +41,7 @@ parser.add_argument('--disable-cuda', action='store_true',
 parser.add_argument('--fp16-precision', action='store_true',
                     help='Whether or not to use 16-bit precision GPU training.')
 
-parser.add_argument('--out_dim', default=129, type=int,
+parser.add_argument('--out_dim', default=512, type=int,
                     help='feature dimension (default: 128)')
 parser.add_argument('--log-every-n-steps', default=100, type=int,
                     help='Log every n steps')
