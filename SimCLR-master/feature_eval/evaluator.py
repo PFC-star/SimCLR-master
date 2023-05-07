@@ -78,14 +78,14 @@ if config.arch == 'resnet18':
   model = torchvision.models.resnet18(pretrained=False, num_classes=10).to(device)
 elif config.arch == 'resnet50':
   model = torchvision.models.resnet50(pretrained=False, num_classes=10).to(device)
-conv0 = torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1)
+# conv0 = torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1)
 #
 # model.conv1 = torch.nn.Sequential(
 # torch.nn.Conv2d(1,3,kernel_size=(1,1),stride=1),
 # torch.nn.Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
 # )
 model.to(device)
-checkpoint = torch.load('../runs/Apr30_22-03-47_PFCPC/checkpoint_0200.pth.tar', map_location=device)
+checkpoint = torch.load('../runs/Apr30_22-03-47_PFCPC/checkpoint_0020.pth.tar', map_location=device)
 state_dict = checkpoint['state_dict']
 
 for k in list(state_dict.keys()):
