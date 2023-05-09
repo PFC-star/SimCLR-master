@@ -1,3 +1,5 @@
+import math
+
 import torch.nn as nn
 import torchvision.models as models
 import torch
@@ -75,19 +77,94 @@ def initialize_weights(net):
         # elif isinstance(m, nn.Linear):
         #     m.weight.data.normal_(0, 0.02)
         #     m.bias.data.zero_()
-class EncoderSimCLR(nn.Module):
-    def __init__(self, base_model=None, out_dim=128):
-        super(EncoderSimCLR, self).__init__()
 
+class PixelNorm(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input):
+        return input * torch.rsqrt(torch.mean(input ** 2, dim=1, keepdim=True) + 1e-8)
+
+
+class EqualLinear(nn.Module):
+    def __init__(
+            self, in_dim, out_dim, bias=True, bias_init=0, lr_mul=1, activation=None
+    ):
+        super().__init__()
+
+        self.weight = nn.Parameter(torch.randn(out_dim, in_dim).div_(lr_mul))
+
+        if bias:
+            self.bias = nn.Parameter(torch.zeros(out_dim).fill_(bias_init))
+
+        else:
+            self.bias = None
+
+        self.activation = activation
+
+        self.scale = (1 / math.sqrt(in_dim)) * lr_mul
+        self.lr_mul = lr_mul
+
+    def forward(self, input):
+        if self.activation:
+            out = F.linear(input, self.weight * self.scale)
+            out = F.leaky_relu(out)
+
+        else:
+            if self.bias is not None:
+                out = F.linear(
+                    input, self.weight * self.scale, bias=self.bias * self.lr_mul
+                )
+            else:
+                out = F.linear(
+                    input, self.weight * self.scale, bias=None)
+
+        return out
+
+    def __repr__(self):
+        return (
+            f'{self.__class__.__name__}({self.weight.shape[1]}, {self.weight.shape[0]})'
+        )
+class FC(nn.Module):
+    def __init__(
+            self,
+            size=28,
+            style_dim=23,
+            n_mlp=3,
+            channel_multiplier=2,
+            blur_kernel=[1, 3, 3, 1],
+            lr_mlp=0.01,
+    ):
+        super().__init__()
+        self.size = size
+        self.style_dim = style_dim
+        layers = [PixelNorm()]
+
+        for i in range(n_mlp):  # n_mlp=8, style_dim=512， lr_mlp=0.01
+            layers.append(
+                EqualLinear(
+                    style_dim, style_dim, lr_mul=lr_mlp, activation='fused_lrelu'
+                )
+            )
+
+        self.style = nn.Sequential(*layers)
+    def forward(self,input):
+        output = self.style(input)
+        return output
+
+class EncoderSimCLR(nn.Module):
+
+    def __init__(self, base_model=None, out_dim=1024):
+        super(EncoderSimCLR, self).__init__()
         self.name = 'encoder'
         self.channels = 1
-        self.latent_dim = out_dim
-
+        self.latent_dim = 80
+        self.n_c = 10
         self.cshape = (128, 5, 5)
         self.iels = int(np.prod(self.cshape))
         self.lshape = (self.iels,)
 
-
+        self.fc = FC(28, self.latent_dim)
         self.model = nn.Sequential(
             # Convolutional layers
             nn.Conv2d(self.channels, 64, 4, stride=2, bias=True),
@@ -99,19 +176,22 @@ class EncoderSimCLR(nn.Module):
             Reshape(self.lshape),
 
             # Fully connected layers
-            torch.nn.Linear(self.iels,  self.latent_dim)
-            # 删掉该层
-            # nn.LeakyReLU(0.2, inplace=True),
-            # torch.nn.Linear(1024, latent_dim + n_c)
+            torch.nn.Linear(self.iels, 1024),
+            nn.LeakyReLU(0.2, inplace=True),
+            torch.nn.Linear(1024, self.latent_dim + self.n_c)
         )
-
-        initialize_weights(self)
-
-
-
+        #
+        # initialize_weights(self)
+        #
+        # if self.verbose:
+        #     print("Setting up {}...\n".format(self.name))
+        #     print(self.model)
 
     def forward(self, in_feat):
         z_img = self.model(in_feat)
+        # Reshape for output
+        z = z_img.view(z_img.shape[0], -1)
+        # Separate continuous and one-hot components
+        zn = z[:, 0:self.latent_dim]
 
-
-        return z_img
+        return zn
